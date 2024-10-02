@@ -1,7 +1,7 @@
 //==============================================
 //  check for parallel 5ths/8ves v0.1
 //
-//  Copyright (C)2015 Jörn Eichler (heuchi) 
+//  Copyright (C)2015 Jörn Eichler (heuchi)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -19,12 +19,13 @@
 
 import QtQuick 2.0
 import QtQuick.Dialogs 1.1
-import MuseScore 1.0
+import MuseScore 3.0
 
 MuseScore {
       menuPath: "Plugins.Proof Reading.Check for parallel 5ths/8ves"
       description: "Check for parallel fifths and octaves.\nMarks consecutive fifths and octaves and also ascending hidden parallels."
-      version: "0.1"
+      version: "0.2"
+      requiresScore: true
 
       property var colorFifth: "#ff6500";
       property var colorOctave: "#ff0050";
@@ -33,13 +34,22 @@ MuseScore {
       property bool processAll: false;
       property bool errorChords: false;
 
+      id: checkParallels
+
+      Component.onCompleted : {
+            if (mscoreMajorVersion >= 4) {
+                  checkParallels.title = "Check for Parallel 5ths/8ves";
+                  checkParallels.categoryCode = "composing-arranging-tools"
+            }
+      }
+
       MessageDialog {
             id: msgResult
             title: "Result"
             text: "Not yet set"
             
             onAccepted: {
-                  Qt.quit();
+                  quit();
             }
 
             visible: false;
@@ -60,8 +70,8 @@ MuseScore {
             markColor(note1, note2, color);
             var myText = newElement(Element.STAFF_TEXT);
             myText.text = msg;
-            //myText.pos.x = 0;
-            myText.pos.y = 1;
+            //myText.pos.x = 0; What did this line do? Can it be removed?
+            myText.offsetY = 1;
             
             var cursor = curScore.newCursor();
             cursor.rewind(0);
@@ -70,14 +80,16 @@ MuseScore {
                   cursor.next();
             }
             cursor.add(myText);
-      }            
+      }
 
       onRun: {
             console.log("start")
             if (typeof curScore == 'undefined' || curScore == null) {
                   console.log("no score found");
-                  Qt.quit();
+                  quit();
             }
+
+            curScore.startCmd();
 
             // find selection
             var startStaff;
@@ -104,7 +116,7 @@ MuseScore {
                   }
                   cursor.rewind(1);
                   console.log("Selection is: Staves("+startStaff+"-"+endStaff+") Ticks("+cursor.tick+"-"+endTick+")");
-            }      
+            }
 
             // initialize data structure
 
@@ -210,7 +222,7 @@ MuseScore {
                                                             markText(prevNote[track],prevNote[i],"hidden 5th",
                                                                   colorHidden,track,prevTick[track]);
                                                             markColor(curNote[track],curNote[i],colorHidden);
-                                                      }                                                
+                                                      }
                                                 }
                                                 // test for 8th
                                                 if (Math.abs(cint%12) == 0) {
@@ -228,7 +240,7 @@ MuseScore {
                                                             markText(prevNote[track],prevNote[i],"hidden 8th",
                                                                   colorHidden,track,prevTick[track]);
                                                             markColor(curNote[track],curNote[i],colorHidden);
-                                                      }                                                
+                                                      }
                                                 }
                                           }
                                     }
@@ -249,12 +261,14 @@ MuseScore {
             }
 
             if (errorChords) {
-                  msgResult.text = msgResult.text + 
+                  msgResult.text = msgResult.text +
                   "\nError: Found Chords!\nOnly the top note of each voice is used in this plugin!\n";
             }
 
+            curScore.endCmd();
+
             console.log("finished");
             msgResult.visible = true;
-            //Qt.quit() // dialog will call Qt.quit()
+            //quit() // dialog will call quit()
       }
 }
