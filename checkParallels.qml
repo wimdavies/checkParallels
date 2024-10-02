@@ -17,8 +17,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //==============================================
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.1
+import QtQuick 2.15
 import MuseScore 3.0
 
 MuseScore {
@@ -36,8 +35,10 @@ MuseScore {
 
       id: checkParallels
 
+      //4.4 title: "Check for Parallel 5ths/8ves"
+      //4.4 categoryCode: "composing-arranging-tools"
       Component.onCompleted : {
-            if (mscoreMajorVersion >= 4) {
+            if (mscoreMajorVersion >= 4 && mscoreMinorVersion <= 3) {
                   checkParallels.title = "Check for Parallel 5ths/8ves";
                   checkParallels.categoryCode = "composing-arranging-tools"
             }
